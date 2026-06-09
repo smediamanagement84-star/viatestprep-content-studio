@@ -25,6 +25,11 @@ export default function Dashboard({ weeklyPlan, setWeeklyPlan, setPrefilledAsset
       const research = runWeeklyResearch();
       const plan = generateContentPlan(research);
       setWeeklyPlan(plan);
+      try {
+        localStorage.setItem('weekly_plan_data', JSON.stringify(plan));
+      } catch (e) {
+        console.error('Failed to save default plan to localStorage', e);
+      }
     }
   }, [weeklyPlan, setWeeklyPlan]);
 

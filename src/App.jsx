@@ -152,7 +152,35 @@ export default function App() {
   const [activeTab,      setActiveTab]      = useState('dashboard');
   const [animationData,  setAnimationData]  = useState(null);
   const [scriptData,     setScriptData]     = useState(null);
-  const [weeklyPlan,     setWeeklyPlan]     = useState(null);
+  const [weeklyResearch, setWeeklyResearch] = useState(() => {
+    try {
+      const cachedData = localStorage.getItem('research_engine_data');
+      const cachedTime = localStorage.getItem('research_engine_time');
+      if (cachedData && cachedTime) {
+        const timeDiff = Date.now() - new Date(cachedTime).getTime();
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        if (timeDiff < oneWeek) {
+          return JSON.parse(cachedData);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load cached research', e);
+    }
+    return null;
+  });
+
+  const [weeklyPlan, setWeeklyPlan] = useState(() => {
+    try {
+      const cachedPlan = localStorage.getItem('weekly_plan_data');
+      if (cachedPlan) {
+        return JSON.parse(cachedPlan);
+      }
+    } catch (e) {
+      console.error('Failed to load cached plan', e);
+    }
+    return null;
+  });
+
   const [prefilledAsset, setPrefilledAsset] = useState(null);
 
   const activeTabObj = TABS.find(t => t.id === activeTab);
@@ -248,6 +276,8 @@ export default function App() {
               <AutoResearch 
                 weeklyPlan={weeklyPlan} 
                 setWeeklyPlan={setWeeklyPlan} 
+                weeklyResearch={weeklyResearch}
+                setWeeklyResearch={setWeeklyResearch}
                 setPrefilledAsset={setPrefilledAsset} 
                 setActiveTab={setActiveTab} 
               />
