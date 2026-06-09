@@ -141,12 +141,34 @@ function SlideCard({ slide, index }) {
 
 // ─── Script Writer (Mode A) ─────────────────────────────────────
 
-function ScriptWriter({ onScriptGenerated }) {
+function ScriptWriter({ onScriptGenerated, prefilledAsset, setPrefilledAsset }) {
   const [topic,     setTopic]     = useState('');
   const [angle,     setAngle]     = useState('');
   const [nicheKey,  setNicheKey]  = useState('writing');
   const [slides,    setSlides]    = useState(null);
   const [copiedAll, setCopiedAll] = useState(false);
+
+  useEffect(() => {
+    if (prefilledAsset && prefilledAsset.format !== 'reel') {
+      setTopic(prefilledAsset.topic || '');
+      setAngle(prefilledAsset.angle || prefilledAsset.hook || '');
+      
+      const nicheMap = {
+        'vocabulary': 'vocabulary', 'vocabulary & word choice': 'vocabulary',
+        'speaking': 'speaking', 'speaking fluency': 'speaking',
+        'writing': 'writing', 'writing task 2': 'writing',
+        'listening': 'listening', 'listening accuracy': 'listening',
+        'timemanagement': 'timeManagement', 'time management': 'timeManagement',
+        'mindset': 'mindset', 'test psychology': 'mindset',
+        'taskachievement': 'taskAchievement', 'task achievement (writing)': 'taskAchievement'
+      };
+      const key = prefilledAsset.category?.toLowerCase() || '';
+      setNicheKey(nicheMap[key] || 'writing');
+      
+      // Clear the prefilledAsset so it doesn't loop
+      setPrefilledAsset(null);
+    }
+  }, [prefilledAsset, setPrefilledAsset]);
 
   const niches = Object.values(CONTENT_LIBRARY);
 
@@ -290,7 +312,7 @@ function ScriptWriter({ onScriptGenerated }) {
 
 // ─── Animation Compiler (Mode B) ────────────────────────────────
 
-function AnimationCompiler({ onAnimationGenerated }) {
+function AnimationCompiler({ onAnimationGenerated, prefilledAsset, setPrefilledAsset, weeklyPlan }) {
   const [topic,     setTopic]     = useState('');
   const [hook,      setHook]      = useState('');
   const [nicheKey,  setNicheKey]  = useState('writing');
@@ -298,6 +320,28 @@ function AnimationCompiler({ onAnimationGenerated }) {
   const [jsxCode,   setJsxCode]   = useState('');
   const [codeView,  setCodeView]  = useState(false);
   const [copied,    setCopied]    = useState(false);
+
+  useEffect(() => {
+    if (prefilledAsset && prefilledAsset.format === 'reel') {
+      setTopic(prefilledAsset.topic || '');
+      setHook(prefilledAsset.angle || prefilledAsset.hook || '');
+      
+      const nicheMap = {
+        'vocabulary': 'vocabulary', 'vocabulary & word choice': 'vocabulary',
+        'speaking': 'speaking', 'speaking fluency': 'speaking',
+        'writing': 'writing', 'writing task 2': 'writing',
+        'listening': 'listening', 'listening accuracy': 'listening',
+        'timemanagement': 'timeManagement', 'time management': 'timeManagement',
+        'mindset': 'mindset', 'test psychology': 'mindset',
+        'taskachievement': 'taskAchievement', 'task achievement (writing)': 'taskAchievement'
+      };
+      const key = prefilledAsset.category?.toLowerCase() || '';
+      setNicheKey(nicheMap[key] || 'writing');
+      
+      // Clear prefilledAsset
+      setPrefilledAsset(null);
+    }
+  }, [prefilledAsset, setPrefilledAsset]);
 
   const niches = Object.values(CONTENT_LIBRARY);
 
@@ -327,6 +371,43 @@ function AnimationCompiler({ onAnimationGenerated }) {
         </div>
 
         <div className="grid grid-cols-1 gap-4">
+          {/* Suggested Topics */}
+          {weeklyPlan && weeklyPlan.length > 0 && (
+            <div className="border-b border-white/5 pb-4">
+              <label className="text-xs text-white/40 uppercase tracking-widest mb-2 block font-semibold">
+                Suggested Topics from Weekly Research
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {weeklyPlan.map((day, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setTopic(day.topic);
+                      setHook(day.hook);
+                      
+                      const nicheMap = {
+                        'vocabulary': 'vocabulary', 'vocabulary & word choice': 'vocabulary',
+                        'speaking': 'speaking', 'speaking fluency': 'speaking',
+                        'writing': 'writing', 'writing task 2': 'writing',
+                        'listening': 'listening', 'listening accuracy': 'listening',
+                        'timemanagement': 'timeManagement', 'time management': 'timeManagement',
+                        'mindset': 'mindset', 'test psychology': 'mindset',
+                        'taskachievement': 'taskAchievement', 'task achievement (writing)': 'taskAchievement'
+                      };
+                      const key = day.category?.toLowerCase() || '';
+                      setNicheKey(nicheMap[key] || 'writing');
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg text-left text-xs bg-white/4 hover:bg-orange/15 border border-white/6 hover:border-orange/20 text-white/70 hover:text-white transition-all flex items-center gap-1.5"
+                  >
+                    <span className="text-[9px] font-black text-orange uppercase tracking-wider">{day.shortDay}</span>
+                    <span className="truncate max-w-[160px]">{day.topic}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Topic */}
           <div>
             <label className="text-xs text-white/40 uppercase tracking-widest mb-1.5 block">
@@ -511,8 +592,18 @@ function AnimationCompiler({ onAnimationGenerated }) {
 
 // ─── Main Generator component ────────────────────────────────────
 
-export default function Generator({ onAnimationGenerated, onScriptGenerated }) {
+export default function Generator({ onAnimationGenerated, onScriptGenerated, prefilledAsset, setPrefilledAsset, weeklyPlan }) {
   const [mode, setMode] = useState('script');
+
+  useEffect(() => {
+    if (prefilledAsset) {
+      if (prefilledAsset.format === 'reel') {
+        setMode('animation');
+      } else {
+        setMode('script');
+      }
+    }
+  }, [prefilledAsset]);
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -537,9 +628,18 @@ export default function Generator({ onAnimationGenerated, onScriptGenerated }) {
           transition={{ duration: 0.25 }}
         >
           {mode === 'script' ? (
-            <ScriptWriter onScriptGenerated={onScriptGenerated} />
+            <ScriptWriter 
+              onScriptGenerated={onScriptGenerated} 
+              prefilledAsset={prefilledAsset} 
+              setPrefilledAsset={setPrefilledAsset} 
+            />
           ) : (
-            <AnimationCompiler onAnimationGenerated={onAnimationGenerated} />
+            <AnimationCompiler 
+              onAnimationGenerated={onAnimationGenerated} 
+              prefilledAsset={prefilledAsset} 
+              setPrefilledAsset={setPrefilledAsset}
+              weeklyPlan={weeklyPlan}
+            />
           )}
         </motion.div>
       </AnimatePresence>

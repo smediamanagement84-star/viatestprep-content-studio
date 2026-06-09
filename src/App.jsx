@@ -149,9 +149,11 @@ function StatusBar({ animationData, scriptData }) {
 // ─── Main App ────────────────────────────────────────────────────
 
 export default function App() {
-  const [activeTab,     setActiveTab]     = useState('dashboard');
-  const [animationData, setAnimationData] = useState(null);
-  const [scriptData,    setScriptData]    = useState(null);
+  const [activeTab,      setActiveTab]      = useState('dashboard');
+  const [animationData,  setAnimationData]  = useState(null);
+  const [scriptData,     setScriptData]     = useState(null);
+  const [weeklyPlan,     setWeeklyPlan]     = useState(null);
+  const [prefilledAsset, setPrefilledAsset] = useState(null);
 
   const activeTabObj = TABS.find(t => t.id === activeTab);
 
@@ -216,22 +218,39 @@ export default function App() {
             className="w-full h-full"
           >
             {activeTab === 'dashboard' && (
-              <Dashboard />
+              <Dashboard 
+                weeklyPlan={weeklyPlan} 
+                setWeeklyPlan={setWeeklyPlan} 
+                setPrefilledAsset={setPrefilledAsset} 
+                setActiveTab={setActiveTab} 
+              />
             )}
 
             {activeTab === 'generator' && (
               <Generator
+                prefilledAsset={prefilledAsset}
+                setPrefilledAsset={setPrefilledAsset}
                 onAnimationGenerated={handleAnimationGenerated}
                 onScriptGenerated={setScriptData}
+                weeklyPlan={weeklyPlan}
               />
             )}
 
             {activeTab === 'previewer' && (
-              <Previewer animationData={animationData} />
+              <Previewer 
+                animationData={animationData} 
+                scriptData={scriptData} 
+                prefilledAsset={prefilledAsset} 
+              />
             )}
 
             {activeTab === 'viral' && (
-              <AutoResearch />
+              <AutoResearch 
+                weeklyPlan={weeklyPlan} 
+                setWeeklyPlan={setWeeklyPlan} 
+                setPrefilledAsset={setPrefilledAsset} 
+                setActiveTab={setActiveTab} 
+              />
             )}
           </motion.div>
         </AnimatePresence>

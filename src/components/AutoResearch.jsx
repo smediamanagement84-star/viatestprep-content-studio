@@ -44,11 +44,12 @@ const MOMENTUM_LABEL = {
 };
 
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function AutoResearch() {
+export default function AutoResearch({ weeklyPlan, setWeeklyPlan, setPrefilledAsset, setActiveTab: setParentTab }) {
   const [research, setResearch] = useState(null);
   const [plan, setPlan]         = useState(null);
   const [loading, setLoading]   = useState(false);
   const [activeTab, setActiveTab] = useState('trends'); // trends | plan | generate
+  const [transferSuccess, setTransferSuccess] = useState(false);
   
   // Content generation state
   const [selectedDay, setSelectedDay]     = useState(null);
@@ -58,7 +59,29 @@ export default function AutoResearch() {
   const [copied, setCopied]               = useState(false);
   const [previewMode, setPreviewMode]     = useState(false);
 
-  // ── Run Research ────────────────────────────────────────────────────────
+  // Restore weekly cached research from localStorage (valid for 7 days)
+  useEffect(() => {
+    try {
+      const cachedData = localStorage.getItem('research_engine_data');
+      const cachedTime = localStorage.getItem('research_engine_time');
+      
+      if (cachedData && cachedTime) {
+        const timeDiff = Date.now() - new Date(cachedTime).getTime();
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        
+        if (timeDiff < oneWeek) {
+          const parsed = JSON.parse(cachedData);
+          setResearch(parsed);
+          const contentPlan = generateContentPlan(parsed);
+          setPlan(contentPlan);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load cached research', e);
+    }
+  }, []);
+
+  // ── Run Research & Cache ────────────────────────────────────────────────
   const handleRunResearch = useCallback(() => {
     setLoading(true);
     setTimeout(() => {
@@ -66,10 +89,29 @@ export default function AutoResearch() {
       const contentPlan = generateContentPlan(data);
       setResearch(data);
       setPlan(contentPlan);
+      
+      try {
+        localStorage.setItem('research_engine_data', JSON.stringify(data));
+        localStorage.setItem('research_engine_time', new Date().toISOString());
+      } catch (e) {
+        console.error('Failed to cache research', e);
+      }
+      
       setLoading(false);
       setActiveTab('plan');
     }, 1600);
   }, []);
+
+  // ── Transfer Plan to Command Center Planner ──────────────────────────────
+  const handleTransferToPlanner = useCallback(() => {
+    if (!plan) return;
+    setWeeklyPlan(plan);
+    setTransferSuccess(true);
+    setTimeout(() => {
+      setTransferSuccess(false);
+      setParentTab('dashboard'); // Redirect to Command Center Content Calendar
+    }, 1200);
+  }, [plan, setWeeklyPlan, setParentTab]);
 
   // ── Generate Content ─────────────────────────────────────────────────────
   const handleGenerate = useCallback((dayData, formatOverride) => {
@@ -177,27 +219,50 @@ export default function AutoResearch() {
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}>
 
-            {/* Run Button */}
-            <motion.button
-              onClick={handleRunResearch}
-              disabled={loading}
-              whileHover={{ scale: loading ? 1 : 1.02 }}
-              whileTap={{ scale: loading ? 1 : 0.98 }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '14px 28px', borderRadius: 12, border: 'none', cursor: loading ? 'wait' : 'pointer',
-                background: loading ? 'rgba(241,196,15,0.2)' : BRAND.gradGold,
-                color: loading ? BRAND.gold : '#08162b',
-                fontSize: 15, fontWeight: 700, fontFamily: BRAND.font,
-                marginBottom: 28, boxShadow: loading ? 'none' : BRAND.shadowGold,
-                transition: 'all 0.2s',
-              }}>
-              <motion.div animate={{ rotate: loading ? 360 : 0 }}
-                transition={{ duration: 1, repeat: loading ? Infinity : 0, ease: 'linear' }}>
-                <Icon d={ICONS.refresh} size={18} color={loading ? BRAND.gold : '#08162b'} />
-              </motion.div>
-              {loading ? 'Analysing trends…' : research ? 'Refresh Research' : 'Run Weekly Research'}
-            </motion.button>
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
+              <motion.button
+                onClick={handleRunResearch}
+                disabled={loading}
+                whileHover={{ scale: loading ? 1 : 1.02 }}
+                whileTap={{ scale: loading ? 1 : 0.98 }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '14px 28px', borderRadius: 12, border: 'none', cursor: loading ? 'wait' : 'pointer',
+                  background: loading ? 'rgba(241,196,15,0.2)' : BRAND.gradGold,
+                  color: loading ? BRAND.gold : '#08162b',
+                  fontSize: 15, fontWeight: 700, fontFamily: BRAND.font,
+                  boxShadow: loading ? 'none' : BRAND.shadowGold,
+                  transition: 'all 0.2s',
+                }}>
+                <motion.div animate={{ rotate: loading ? 360 : 0 }}
+                  transition={{ duration: 1, repeat: loading ? Infinity : 0, ease: 'linear' }}>
+                  <Icon d={ICONS.refresh} size={18} color={loading ? BRAND.gold : '#08162b'} />
+                </motion.div>
+                {loading ? 'Analysing trends…' : research ? 'Refresh Research' : 'Run Weekly Research'}
+              </motion.button>
+
+              {research && !loading && (
+                <motion.button
+                  onClick={handleTransferToPlanner}
+                  disabled={transferSuccess}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '14px 28px', borderRadius: 12, border: `1px solid ${BRAND.borderTeal}`, 
+                    cursor: 'pointer',
+                    background: transferSuccess ? `${BRAND.teal}22` : BRAND.tealDim,
+                    color: BRAND.teal,
+                    fontSize: 15, fontWeight: 700, fontFamily: BRAND.font,
+                    boxShadow: BRAND.shadowTeal,
+                    transition: 'all 0.2s',
+                  }}>
+                  <Icon d={ICONS.calendar} size={18} color={BRAND.teal} />
+                  {transferSuccess ? 'Transferred to Planner! Redirecting...' : 'Transfer Best Ideas to Content Planner'}
+                </motion.button>
+              )}
+            </div>
 
             {!research && !loading && (
               <NoDataState onRun={handleRunResearch} />
