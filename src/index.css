@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #0b0f19;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: #0b0f19; }
+::-webkit-scrollbar-thumb  { background: #252d45; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #FF6B00; }
+
+/* ─── Glassmorphism card ─────────────────────────────────────── */
+.glass {
+  background: rgba(19, 25, 41, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Orange glow utility ────────────────────────────────────── */
+.orange-glow {
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.25),
+              0 0 40px rgba(255, 107, 0, 0.1);
+}
+
+.orange-glow-text {
+  text-shadow: 0 0 20px rgba(255, 107, 0, 0.6);
+}
+
+/* ─── Viewport container (9:16) ─────────────────────────────── */
+.viewport-916 {
+  width: 390px;
+  height: 693px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* ─── Zero-bleed text ───────────────────────────────────────── */
+.safe-text {
+  padding: 0 35px;
+  white-space: normal;
+  word-break: break-words;
+  overflow-wrap: break-word;
+}
+
+/* ─── Gradient border ────────────────────────────────────────── */
+.gradient-border {
+  background: linear-gradient(#131929, #131929) padding-box,
+              linear-gradient(135deg, rgba(255,107,0,0.4), rgba(255,255,255,0.05)) border-box;
+  border: 1px solid transparent;
+}
+
+/* ─── Slide animation ─────────────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+  animation: slideUp 0.35s ease forwards;
+}
+
+/* ─── Subtle grid bg ─────────────────────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
