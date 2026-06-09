@@ -12,7 +12,7 @@ import {
 import Dashboard     from './components/Dashboard.jsx';
 import Generator     from './components/Generator.jsx';
 import Previewer     from './components/Previewer.jsx';
-import ViralResearch from './components/ViralResearch.jsx';
+import AutoResearch from './components/AutoResearch.jsx';
 
 // ─── Navigation config ──────────────────────────────────────────
 
@@ -40,7 +40,7 @@ const TABS = [
   },
   {
     id:       'viral',
-    label:    'Viral Research',
+    label:    'AI Research',
     short:    'Research',
     icon:     Clapperboard,
     badge:    'NEW',
@@ -231,7 +231,7 @@ export default function App() {
             )}
 
             {activeTab === 'viral' && (
-              <ViralResearch />
+              <AutoResearch />
             )}
           </motion.div>
         </AnimatePresence>
