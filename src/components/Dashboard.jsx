@@ -5,10 +5,12 @@ import {
   ChevronDown, ChevronUp, TrendingUp, Lightbulb,
   RefreshCw, AlertTriangle, Film, Layout,
 } from 'lucide-react';
-import { runWeeklyResearch, generateContentPlan } from '../lib/researchEngine.js';
+import { runWeeklyResearch, generateContentPlan, generateCarouselData, generateInfographicData } from '../lib/researchEngine.js';
 import { generateCarouselScript, generateAnimationData, generateJSXCode } from '../lib/contentLogic.jsx';
 import { BRAND } from '../lib/brandTokens.js';
 import html2canvas from 'html2canvas';
+import CarouselPreview from './CarouselPreview.jsx';
+import InfographicPreview from './InfographicPreview.jsx';
 
 // ─── tiny helpers ────────────────────────────────────────────────────────────
 function copyText(text, setFlag) {
@@ -101,7 +103,8 @@ function SceneCard({ scene, i, examColor }) {
 // ─── Content Generator Panel (opens per day card) ───────────────────────────
 function ContentPanel({ day, onClose }) {
   const examColor = day.exam === 'IELTS' ? BRAND.gold : BRAND.teal;
-  const isReel    = day.format === 'reel';
+  const currentFormat = day.format;
+  const isReel    = currentFormat === 'reel';
   const nicheKey  = toNicheKey(day.category);
 
   const [generated, setGenerated] = useState(null);
@@ -114,9 +117,13 @@ function ContentPanel({ day, onClose }) {
       if (isReel) {
         const data = generateAnimationData(day.topic, day.hook || '', nicheKey);
         setGenerated({ type: 'reel', data });
+      } else if (currentFormat === 'infographic') {
+        const visualData = generateInfographicData(day);
+        setGenerated({ type: 'infographic', data: visualData });
       } else {
         const slides = generateCarouselScript(day.topic, day.hook || '', nicheKey);
-        setGenerated({ type: 'carousel', slides });
+        const visualData = generateCarouselData(day);
+        setGenerated({ type: 'carousel', slides, visualData });
       }
       setLoading(false);
     }, 600);
@@ -129,6 +136,9 @@ function ContentPanel({ day, onClose }) {
         `SLIDE ${s.slide} [${s.label}]\n${s.copy}\n\nVisual: ${s.visual}\nPsychology: ${s.logic}`
       ).join('\n\n────────\n\n');
       downloadBlob(`CAROUSEL: ${day.topic}\n${'─'.repeat(40)}\n\n${text}`, `carousel-${day.shortDay}.txt`);
+    } else if (generated.type === 'infographic') {
+      const text = `INFOGRAPHIC: ${day.topic}\n${'─'.repeat(40)}\n\nHeadline: ${generated.data.headline}\nInsight: ${generated.data.insight}\nStat: ${generated.data.stat}\nFix: ${generated.data.fix}`;
+      downloadBlob(text, `infographic-${day.shortDay}.txt`);
     } else {
       const scenes = generated.data.scenes.map((s, i) =>
         `SCENE ${i + 1}: ${s.label}\n${s.lines.join('\n')}`
@@ -146,6 +156,8 @@ function ContentPanel({ day, onClose }) {
     let text = '';
     if (generated.type === 'carousel') {
       text = generated.slides.map(s => `SLIDE ${s.slide}: ${s.copy}`).join('\n\n');
+    } else if (generated.type === 'infographic') {
+      text = `Headline: ${generated.data.headline}\nInsight: ${generated.data.insight}\nStat: ${generated.data.stat}\nFix: ${generated.data.fix}`;
     } else {
       text = generated.data.scenes.map((s, i) => `Scene ${i + 1} [${s.label}]: ${s.lines.join(' | ')}`).join('\n');
     }
@@ -172,7 +184,7 @@ function ContentPanel({ day, onClose }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           {isReel ? <Film size={14} color={examColor} /> : <Layout size={14} color={examColor} />}
           <span style={{ fontSize: 11, fontWeight: 800, color: examColor, textTransform: 'uppercase', letterSpacing: '1px' }}>
-            {isReel ? 'Reel Script Generator' : 'Carousel Script Generator'}
+            {isReel ? 'Reel Script Generator' : currentFormat === 'infographic' ? 'Infographic Asset Generator' : 'Carousel Asset Generator'}
           </span>
           <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginLeft: 'auto' }}>
             {day.topic.slice(0, 40)}{day.topic.length > 40 ? '...' : ''}
@@ -194,7 +206,7 @@ function ContentPanel({ day, onClose }) {
           >
             {loading
               ? <><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> Generating...</>
-              : <><Zap size={14} /> Generate {isReel ? 'Reel Script' : '6-Slide Carousel'}</>
+              : <><Zap size={14} /> Generate {isReel ? 'Reel Script' : currentFormat === 'infographic' ? 'Infographic' : 'Carousel Slides'}</>
             }
           </button>
         ) : (
@@ -213,7 +225,7 @@ function ContentPanel({ day, onClose }) {
                 }}
               >
                 {copied ? <Check size={13} /> : <Copy size={13} />}
-                {copied ? 'Copied!' : 'Copy All'}
+                {copied ? 'Copied!' : 'Copy Text Data'}
               </button>
               <button
                 onClick={handleDownload}
@@ -227,7 +239,7 @@ function ContentPanel({ day, onClose }) {
                 }}
               >
                 <Download size={13} />
-                Download .txt
+                Download Script .txt
               </button>
               <button
                 onClick={() => setGenerated(null)}
@@ -242,12 +254,35 @@ function ContentPanel({ day, onClose }) {
               </button>
             </div>
 
-            {/* Content */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 340, overflowY: 'auto' }}>
-              {generated.type === 'carousel'
-                ? generated.slides.map((s, i) => <SlideCard key={i} slide={s} examColor={examColor} />)
-                : generated.data.scenes.map((s, i) => <SceneCard key={i} scene={s} i={i} examColor={examColor} />)
-              }
+            {/* Content Preview */}
+            <div style={{ marginTop: 12 }}>
+              {generated.type === 'carousel' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24, justifyItems: 'center' }}>
+                  {/* Visual Preview */}
+                  <div style={{ width: '100%', maxWidth: 420 }}>
+                    <CarouselPreview data={generated.visualData} examColor={examColor} />
+                  </div>
+                  {/* Detailed Slide Content */}
+                  <div style={{ width: '100%', maxHeight: 300, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 6 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'block', marginBottom: 4 }}>
+                      Slide Text Blueprints
+                    </span>
+                    {generated.slides.map((s, i) => <SlideCard key={i} slide={s} examColor={examColor} />)}
+                  </div>
+                </div>
+              )}
+
+              {generated.type === 'infographic' && (
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <InfographicPreview data={generated.data} examColor={examColor} />
+                </div>
+              )}
+
+              {generated.type === 'reel' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 340, overflowY: 'auto' }}>
+                  {generated.data.scenes.map((s, i) => <SceneCard key={i} scene={s} i={i} examColor={examColor} />)}
+                </div>
+              )}
             </div>
           </div>
         )}
