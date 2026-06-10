@@ -212,14 +212,13 @@ export default function CarouselPreview({ data, examColor }) {
                   <h1 style={{
                     fontSize: 'clamp(18px, 4vw, 24px)', fontWeight: 900, color: '#fff',
                     lineHeight: 1.25, margin: '0 0 12px', letterSpacing: '-0.3px',
-                    overflowWrap: 'break-word',
                   }}>
                     {slide.headline?.split(' ').map((w, i) => {
                       const bad = ['failed','wrong','killing','stuck','plateau','trap','myth','hurting','error','failing','retakers'].includes(w.toLowerCase().replace(/[^a-z]/g,''));
-                      return <span key={i} style={{ color: bad ? examColor : '#fff', marginRight: 5 }}>{w}</span>;
+                      return <span key={i} style={{ color: bad ? examColor : '#fff', display: 'inline-block', marginRight: 5 }}>{w}</span>;
                     })}
                   </h1>
-                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6, wordBreak: 'break-word' }}>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
                     {slide.subline}
                   </p>
                   <div style={{ marginTop: 14, width: 36, height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${examColor}, transparent)` }} />
@@ -235,11 +234,11 @@ export default function CarouselPreview({ data, examColor }) {
                       {slide.label}
                     </span>
                   </div>
-                  <h2 style={{ fontSize: 'clamp(15px, 3.5vw, 19px)', fontWeight: 900, color: '#fff', lineHeight: 1.3, margin: '0 0 10px', wordBreak: 'break-word' }}>
+                  <h2 style={{ fontSize: 'clamp(15px, 3.5vw, 19px)', fontWeight: 900, color: '#fff', lineHeight: 1.3, margin: '0 0 10px' }}>
                     {slide.headline}
                   </h2>
                   <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0, wordBreak: 'break-word' }}>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
                       {slide.body}
                     </p>
                   </div>
@@ -263,10 +262,10 @@ export default function CarouselPreview({ data, examColor }) {
                   }}>
                     {slide.stat?.match(/\d+[%+]?/)?.[0] || '73%'}
                   </div>
-                  <p style={{ fontSize: 12, color: '#fff', fontWeight: 700, margin: '0 0 6px', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                  <p style={{ fontSize: 12, color: '#fff', fontWeight: 700, margin: '0 0 6px', lineHeight: 1.4 }}>
                     {slide.stat}
                   </p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0, wordBreak: 'break-word' }}>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
                     {slide.body}
                   </p>
                 </div>
@@ -313,14 +312,14 @@ export default function CarouselPreview({ data, examColor }) {
                       {slide.label}
                     </span>
                   </div>
-                  <h2 style={{ fontSize: 'clamp(15px, 3.5vw, 19px)', fontWeight: 900, color: '#fff', lineHeight: 1.3, margin: '0 0 10px', wordBreak: 'break-word' }}>
+                  <h2 style={{ fontSize: 'clamp(15px, 3.5vw, 19px)', fontWeight: 900, color: '#fff', lineHeight: 1.3, margin: '0 0 10px' }}>
                     {slide.headline?.split(' ').map((w, i) => {
                       const good = ['works','fix','smarter','formula','right','fluent','correct','pass','improve','better'].includes(w.toLowerCase().replace(/[^a-z]/g,''));
-                      return <span key={i} style={{ color: good ? '#00adb5' : '#fff', marginRight: 5 }}>{w}</span>;
+                      return <span key={i} style={{ color: good ? '#00adb5' : '#fff', display: 'inline-block', marginRight: 5 }}>{w}</span>;
                     })}
                   </h2>
                   <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(0,173,181,0.06)', border: '1px solid rgba(0,173,181,0.15)' }}>
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0, wordBreak: 'break-word' }}>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
                       {slide.body}
                     </p>
                   </div>
@@ -338,10 +337,10 @@ export default function CarouselPreview({ data, examColor }) {
                   }}>
                     <Icon d={ICONS.star} size={22} color={examColor} fill={`${examColor}40`} />
                   </div>
-                  <h2 style={{ fontSize: 'clamp(16px, 4vw, 20px)', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.25, wordBreak: 'break-word' }}>
+                  <h2 style={{ fontSize: 'clamp(16px, 4vw, 20px)', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.25 }}>
                     {slide.headline}
                   </h2>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, margin: 0, wordBreak: 'break-word' }}>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, margin: 0 }}>
                     {slide.body}
                   </p>
                   <div style={{
