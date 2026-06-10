@@ -3,7 +3,7 @@
 //  src/components/Generator.jsx
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Layout, Film, Zap, Copy, Download, ChevronRight,

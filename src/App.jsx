@@ -6,44 +6,35 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Wand2, Smartphone,
-  Zap, ChevronRight, Clapperboard,
+  LayoutDashboard, Zap, Lightbulb, ChevronRight
 } from 'lucide-react';
 import Dashboard     from './components/Dashboard.jsx';
-import Generator     from './components/Generator.jsx';
-import Previewer     from './components/Previewer.jsx';
-import AutoResearch from './components/AutoResearch.jsx';
+import AutoResearch  from './components/AutoResearch.jsx';
+import IdeaLab       from './components/IdeaLab.jsx';
 
 // ─── Navigation config ──────────────────────────────────────────
 
 const TABS = [
   {
-    id:       'dashboard',
-    label:    'Command Center',
-    short:    'Strategy',
-    icon:     LayoutDashboard,
-    badge:    null,
+    id:    'dashboard',
+    label: 'Weekly Planner',
+    short: 'Planner',
+    icon:  LayoutDashboard,
+    badge: null,
   },
   {
-    id:       'generator',
-    label:    'Asset Generator',
-    short:    'Generator',
-    icon:     Wand2,
-    badge:    null,
+    id:    'viral',
+    label: 'AI Research',
+    short: 'Research',
+    icon:  Zap,
+    badge: null,
   },
   {
-    id:       'previewer',
-    label:    'Preview & Export',
-    short:    'Preview',
-    icon:     Smartphone,
-    badge:    null,
-  },
-  {
-    id:       'viral',
-    label:    'AI Research',
-    short:    'Research',
-    icon:     Clapperboard,
-    badge:    'NEW',
+    id:    'idealab',
+    label: 'Idea Lab',
+    short: 'Ideas',
+    icon:  Lightbulb,
+    badge: null,
   },
 ];
 
@@ -178,7 +169,7 @@ export default function App() {
     } catch (e) {
       console.error('Failed to load cached plan', e);
     }
-    return null;
+    return [];
   });
 
   const [prefilledAsset, setPrefilledAsset] = useState(null);
@@ -249,26 +240,15 @@ export default function App() {
               <Dashboard 
                 weeklyPlan={weeklyPlan} 
                 setWeeklyPlan={setWeeklyPlan} 
-                setPrefilledAsset={setPrefilledAsset} 
                 setActiveTab={setActiveTab} 
               />
             )}
 
-            {activeTab === 'generator' && (
-              <Generator
-                prefilledAsset={prefilledAsset}
-                setPrefilledAsset={setPrefilledAsset}
-                onAnimationGenerated={handleAnimationGenerated}
-                onScriptGenerated={setScriptData}
+            {activeTab === 'idealab' && (
+              <IdeaLab
                 weeklyPlan={weeklyPlan}
-              />
-            )}
-
-            {activeTab === 'previewer' && (
-              <Previewer 
-                animationData={animationData} 
-                scriptData={scriptData} 
-                prefilledAsset={prefilledAsset} 
+                setWeeklyPlan={setWeeklyPlan}
+                setActiveTab={setActiveTab}
               />
             )}
 
@@ -278,7 +258,6 @@ export default function App() {
                 setWeeklyPlan={setWeeklyPlan} 
                 weeklyResearch={weeklyResearch}
                 setWeeklyResearch={setWeeklyResearch}
-                setPrefilledAsset={setPrefilledAsset} 
                 setActiveTab={setActiveTab} 
               />
             )}
