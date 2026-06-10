@@ -92,6 +92,32 @@ export default function CarouselPreview({ data, examColor }) {
   const [downloading, setDownloading]   = useState(false);
   const [copied, setCopied]             = useState(false);
   const slideRef = useRef(null);
+  const allRefs = useRef([]);
+
+  const handleDownloadAllSlides = async () => {
+    setDownloading(true);
+    try {
+      for (let i = 0; i < slides.length; i++) {
+        const element = allRefs.current[i];
+        if (element) {
+          const canvas = await html2canvas(element, {
+            useCORS: true, allowTaint: true,
+            backgroundColor: BRAND.bg, scale: 2.5, logging: false,
+          });
+          const url = canvas.toDataURL('image/png', 1.0);
+          const a   = document.createElement('a');
+          a.href    = url;
+          a.download = `VIA-Carousel-Slide-${i + 1}.png`;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const slides = data?.slides || [];
   const slide  = slides[currentSlide];
@@ -427,6 +453,250 @@ export default function CarouselPreview({ data, examColor }) {
           <Icon d={ICONS.download} size={13} color="#08162b" />
           {downloading ? 'Capturing...' : 'Download PNG'}
         </button>
+        <button onClick={handleDownloadAllSlides} disabled={downloading} style={{
+          display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px',
+          background: `linear-gradient(135deg, ${BRAND.teal}, ${BRAND.teal}90)`,
+          border: 'none', borderRadius: 9, color: '#08162b',
+          fontSize: 12, fontWeight: 800, cursor: downloading ? 'wait' : 'pointer',
+          fontFamily: BRAND.font, boxShadow: `0 4px 16px ${BRAND.teal}30`,
+          transition: 'all 0.2s', flex: '1 1 auto',
+        }}>
+          <Icon d={ICONS.download} size={13} color="#08162b" />
+          {downloading ? 'Compiling...' : 'Download All Slides'}
+        </button>
+      </div>
+
+      {/* Hidden offscreen container for capturing all slides */}
+      <div style={{ position: 'absolute', top: 0, left: '-9999px', width: 420 }}>
+        {slides.map((s, idx) => {
+          const isHookOrCTA_s = s.type === 'hook' || s.type === 'cta';
+          return (
+            <div
+              key={s.id || idx}
+              ref={el => allRefs.current[idx] = el}
+              style={{
+                width: 420,
+                height: 420,
+                background: isHookOrCTA_s
+                  ? `linear-gradient(145deg, #0c1e3c 0%, #08162b 60%, #0a1a30 100%)`
+                  : `linear-gradient(160deg, #0d1e3a 0%, #08162b 100%)`,
+                borderRadius: 18,
+                position: 'relative',
+                display: 'flex', flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: '24px 28px',
+                boxSizing: 'border-box',
+                overflow: 'hidden',
+                fontFamily: BRAND.font,
+                marginBottom: 20,
+              }}
+            >
+              <GeometricAccents examColor={examColor} type={s.type} />
+              
+              {/* Top Bar */}
+              <div>
+                <ProgressBar current={idx} total={slides.length} color={examColor} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 6,
+                      background: `linear-gradient(135deg, ${examColor}, ${examColor}88)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 8, fontWeight: 900, color: '#08162b',
+                    }}>
+                      VIA
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: 'rgba(255,255,255,0.5)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                      TESTPREP
+                    </span>
+                  </div>
+                  <div style={{
+                    fontSize: 10, fontWeight: 800, color: examColor,
+                    background: `${examColor}15`,
+                    border: `1px solid ${examColor}30`,
+                    padding: '3px 10px', borderRadius: 20, textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}>
+                    {data.exam}
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Content */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', zIndex: 2, margin: '16px 0' }}>
+                {s.type === 'hook' && (
+                  <div>
+                    <div style={{
+                      display: 'inline-block', padding: '4px 12px', borderRadius: 20, marginBottom: 12,
+                      background: `${examColor}18`, border: `1px solid ${examColor}35`,
+                      fontSize: 10, fontWeight: 800, color: examColor, letterSpacing: '2px', textTransform: 'uppercase',
+                    }}>
+                      Must Read
+                    </div>
+                    <h1 style={{
+                      fontSize: '24px', fontWeight: 900, color: '#fff',
+                      lineHeight: 1.25, margin: '0 0 12px', letterSpacing: '-0.3px',
+                    }}>
+                      {s.headline?.split(' ').map((w, i) => {
+                        const bad = ['failed','wrong','killing','stuck','plateau','trap','myth','hurting','error','failing','retakers'].includes(w.toLowerCase().replace(/[^a-z]/g,''));
+                        return <span key={i} style={{ color: bad ? examColor : '#fff', display: 'inline-block', marginRight: 5 }}>{w}</span>;
+                      })}
+                    </h1>
+                    <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
+                      {s.subline}
+                    </p>
+                    <div style={{ marginTop: 14, width: 36, height: 3, borderRadius: 2, background: `linear-gradient(90deg, ${examColor}, transparent)` }} />
+                  </div>
+                )}
+
+                {s.type === 'problem' && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 3, height: 20, borderRadius: 2, background: examColor, flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, fontWeight: 800, color: examColor, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        {s.label}
+                      </span>
+                    </div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', lineHeight: 1.3, margin: '0 0 10px' }}>
+                      {s.headline}
+                    </h2>
+                    <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
+                        {s.body}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {s.type === 'data' && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <div style={{ width: 3, height: 20, borderRadius: 2, background: examColor, flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, fontWeight: 800, color: examColor, letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        {s.label}
+                      </span>
+                    </div>
+                    <div style={{
+                      fontSize: '56px', fontWeight: 900, lineHeight: 1,
+                      background: `linear-gradient(135deg, ${examColor}, ${examColor}80)`,
+                      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                      marginBottom: 8,
+                    }}>
+                      {s.stat?.match(/\d+[%+]?/)?.[0] || '73%'}
+                    </div>
+                    <p style={{ fontSize: 12, color: '#fff', fontWeight: 700, margin: '0 0 6px', lineHeight: 1.4 }}>
+                      {s.stat}
+                    </p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
+                      {s.body}
+                    </p>
+                  </div>
+                )}
+
+                {s.type === 'comparison' && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                      <div style={{ width: 3, height: 22, borderRadius: 2, background: '#00adb5' }} />
+                      <span style={{ fontSize: 10, fontWeight: 800, color: '#00adb5', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        {s.label}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{
+                        padding: '12px 14px', borderRadius: 10,
+                        background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
+                      }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#ef4444', marginBottom: 5, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          ✗ What Doesn't Work
+                        </div>
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 1.5 }}>{s.wrong}</div>
+                      </div>
+                      <div style={{
+                        padding: '12px 14px', borderRadius: 10,
+                        background: 'rgba(0,173,181,0.08)', border: '1px solid rgba(0,173,181,0.25)',
+                      }}>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: '#00adb5', marginBottom: 5, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          ✓ What Works
+                        </div>
+                        <div style={{ fontSize: 13, color: '#fff', lineHeight: 1.5, fontWeight: 700 }}>{s.right}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {s.type === 'fix' && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 3, height: 20, borderRadius: 2, background: '#00adb5', flexShrink: 0 }} />
+                      <span style={{ fontSize: 10, fontWeight: 800, color: '#00adb5', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                        {s.label}
+                      </span>
+                    </div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', lineHeight: 1.3, margin: '0 0 10px' }}>
+                      {s.headline?.split(' ').map((w, i) => {
+                        const good = ['works','fix','smarter','formula','right','fluent','correct','pass','improve','better'].includes(w.toLowerCase().replace(/[^a-z]/g,''));
+                        return <span key={i} style={{ color: good ? '#00adb5' : '#fff', display: 'inline-block', marginRight: 5 }}>{w}</span>;
+                      })}
+                    </h2>
+                    <div style={{ padding: '10px 12px', borderRadius: 10, background: 'rgba(0,173,181,0.06)', border: '1px solid rgba(0,173,181,0.15)' }}>
+                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>
+                        {s.body}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {s.type === 'cta' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 50, height: 50, borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${examColor}25, ${examColor}10)`,
+                      border: `2px solid ${examColor}40`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      <Icon d={ICONS.star} size={22} color={examColor} fill={`${examColor}40`} />
+                    </div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.25 }}>
+                      {s.headline}
+                    </h2>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, margin: 0 }}>
+                      {s.body}
+                    </p>
+                    <div style={{
+                      padding: '7px 18px', borderRadius: 24,
+                      background: `linear-gradient(135deg, ${examColor}, ${examColor}90)`,
+                      fontSize: 12, fontWeight: 900, color: '#08162b', letterSpacing: '0.5px',
+                    }}>
+                      {s.handle}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                borderTop: `1px solid rgba(255,255,255,0.06)`, paddingTop: 14, zIndex: 2,
+              }}>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {slides.map((_, i) => (
+                    <div key={i} style={{
+                      width: i === idx ? 16 : 5, height: 5, borderRadius: 3,
+                      background: i === idx ? examColor : 'rgba(255,255,255,0.12)',
+                    }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
+                  {idx + 1 < slides.length ? (
+                    <span style={{ color: examColor, fontWeight: 700 }}>Swipe ›</span>
+                  ) : (
+                    <span>🔖 Save this</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
